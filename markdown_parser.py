@@ -4,11 +4,11 @@
 
 # import pandas as pd
 import matplotlib.pyplot as plt
-
+import numpy
+import nltk #natural language toolkit
 import sys  
-
 reload(sys)  
-sys.setdefaultencoding('utf8')
+sys.setdefaultencoding('utf8') #some encoding issues
 
 class MarkdownParser:
   def __init__(self,folder,file,header="",content="",options=None):
@@ -34,17 +34,30 @@ class MarkdownParser:
         self.content += line
     f.close()
 
-  def word_freq(self,top=100):
+  def word_freq(self,top=20,includeStop=False):
     # count frequency of words in a document
-    # top is the top frequency that we want to see
+    # top: the top frequency that we want to see in the plot
+    # includeStop: default on false, don't include in word freq
+
     wordList = self.content.split()
-    # print "num words:", len(wordList)
     self.wordDict = {}
-    for word in wordList:
-      if word in self.wordDict:
-        self.wordDict[word] += 1
+    if not includeStop:
+      #import stopwords
+      from nltk.corpus import stopwords
+      stopWd = stopwords.words('english')
+    for wd in wordList:
+      word = wd.lower()
+      if not includeStop:
+        if word not in stopWd:
+          if word in self.wordDict:
+            self.wordDict[word] += 1
+          else:
+            self.wordDict[word] = 1 #count freq
       else:
-        self.wordDict[word] = 1 #count freq
+        if word in self.wordDict:
+          self.wordDict[word] += 1
+        else:
+          self.wordDict[word] = 1 #count freq
     # print self.wordDict
 
     # plt.bar(range(len(self.wordDict)), self.wordDict.values(), align='center')
@@ -62,8 +75,11 @@ class MarkdownParser:
       if i > top:
         break
 
+    plt.title('Word freq of '+ self.file)
     plt.bar(range(len(yplt)), yplt, align='center')
     plt.xticks(range(len(xplt)), xplt)
+    locs, labels = plt.xticks()
+    plt.setp(labels, rotation=90)
     plt.show()
 
 
